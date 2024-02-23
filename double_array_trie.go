@@ -1,6 +1,7 @@
 package double_array_trie
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -130,6 +131,11 @@ func (ac *AcDoubleArrayTrie) BuildTrie(keyWords []string) *Node {
 		return false
 	})
 
+	for _, word := range words {
+		fmt.Printf("%s ", string(word))
+	}
+	fmt.Printf("\n")
+
 	ac.resize(int(maxCode))
 
 	trie := &Trie{
@@ -216,7 +222,6 @@ func (ac *AcDoubleArrayTrie) setBaseAndCheck(parent *Node) {
 	for _, child := range parent.children {
 		index = base + int(child.code)
 		child.index = index
-		//child.parentBase = base
 
 		ac.resize(index)
 		ac.base[index] = base // placeholder, may not be the corrent base value
