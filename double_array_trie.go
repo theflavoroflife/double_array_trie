@@ -23,6 +23,22 @@ type AcDoubleArrayTrie struct {
 	lengths []map[int]struct{} // lengths of words
 }
 
+func (dat *AcDoubleArrayTrie) GetBase() []int {
+	return dat.base
+}
+
+func (dat *AcDoubleArrayTrie) GetCheck() []int {
+	return dat.check
+}
+
+func (dat *AcDoubleArrayTrie) GetFail() []int {
+	return dat.fail
+}
+
+func (dat *AcDoubleArrayTrie) GetLengths() []map[int]struct{} {
+	return dat.lengths
+}
+
 func NewAcDoubleArrayTrie() *AcDoubleArrayTrie {
 	return &AcDoubleArrayTrie{
 		DoubleArrayTrie: DoubleArrayTrie{
