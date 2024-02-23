@@ -35,26 +35,24 @@ func NewAcDoubleArrayTrie() *AcDoubleArrayTrie {
 
 // node
 type Node struct {
-	code       rune
-	index      int // index of base and check
-	depth      int
-	parentBase int // parent's base
-	left       int // fist child
-	right      int // last child
-	end        bool
+	code  rune
+	index int // index of base and check
+	depth int
+	left  int // fist child
+	right int // last child
+	end   bool
 
 	children []*Node
 }
 
 func NewNode() *Node {
 	return &Node{
-		code:       0,
-		index:      0,
-		depth:      0,
-		parentBase: 0, // base+code=index
-		left:       0,
-		right:      0,
-		end:        false,
+		code:  0,
+		index: 0,
+		depth: 0,
+		left:  0,
+		right: 0,
+		end:   false,
 
 		children: make([]*Node, 0),
 	}
@@ -155,6 +153,7 @@ func (ac *AcDoubleArrayTrie) BuildTrie(keyWords []string) *Node {
 		if node.end {
 			length := len(words[node.left])
 			lengths := make(map[int]struct{})
+			ac.resize(length)
 			lengths[length] = struct{}{}
 			ac.addLens(node.index, lengths)
 		}
@@ -185,10 +184,9 @@ func (ac *AcDoubleArrayTrie) getChildren(parent *Node, words [][]rune) []*Node {
 
 		if preCode != curCode {
 			node := &Node{
-				code:       curCode,
-				depth:      parent.depth + 1,
-				left:       i,
-				parentBase: parent.parentBase,
+				code:  curCode,
+				depth: parent.depth + 1,
+				left:  i,
 			}
 
 			if len(parent.children) > 0 {
@@ -210,14 +208,15 @@ func (ac *AcDoubleArrayTrie) getChildren(parent *Node, words [][]rune) []*Node {
 func (ac *AcDoubleArrayTrie) setBaseAndCheck(parent *Node) {
 	base := ac.getBase(parent)
 	ac.resize(parent.index)
-	ac.base[parent.index] = base // may conflict, reset parent's base value
+	ac.base[parent.index] = base // reset parent's base value
+
 	//fmt.Printf("setBaseAndCheck parent parent.code:%s, parent.index:%-3d, base:%d\n",
 	//	string(parent.code), parent.index, base)
 	index := 0
 	for _, child := range parent.children {
 		index = base + int(child.code)
 		child.index = index
-		child.parentBase = base
+		//child.parentBase = base
 
 		ac.resize(index)
 		ac.base[index] = base // placeholder, may not be the corrent base value
@@ -229,7 +228,7 @@ func (ac *AcDoubleArrayTrie) setBaseAndCheck(parent *Node) {
 
 func (ac *AcDoubleArrayTrie) getBase(parent *Node) int {
 	if len(parent.children) == 0 {
-		return parent.parentBase
+		return 0 // base=0, has no children
 	}
 
 	firstChildCode := int(parent.children[0].code)
@@ -239,14 +238,15 @@ func (ac *AcDoubleArrayTrie) getBase(parent *Node) int {
 	next:
 		pos++
 
-		if len(ac.base) > pos && ac.base[pos] != 0 {
+		// index begin from 0, use base/check/lengths array to check whether the position is occupied
+		if len(ac.base) > pos && (ac.base[pos] != 0 || ac.check[pos] != 0 || len(ac.lengths[pos]) > 0) {
 			continue
 		}
 
 		base = pos - firstChildCode
 		for _, child := range parent.children {
 			index := base + int(child.code)
-			if len(ac.base) > index && ac.base[index] != 0 { // use base array to check, not the check array
+			if len(ac.base) > index && (ac.base[index] != 0 || ac.check[index] != 0 || len(ac.lengths[index]) > 0) {
 				goto next
 			}
 		}
@@ -267,7 +267,8 @@ func (ac *AcDoubleArrayTrie) backtraceFailNode(parentIndex int, code rune) int {
 		return failState
 	}
 
-	if ac.base[childIndex] != 0 && parentIndex == ac.check[childIndex] {
+	if (ac.base[childIndex] != 0 || ac.check[childIndex] != 0 || len(ac.lengths[childIndex]) > 0) &&
+		parentIndex == ac.check[childIndex] {
 		return childIndex
 	}
 
