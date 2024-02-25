@@ -277,7 +277,7 @@ func (ac *AcDoubleArrayTrie) getBase(parent *Node) int {
 	return base
 }
 
-func (ac *AcDoubleArrayTrie) backtraceFailNode(parentIndex int, code rune) int {
+func (ac *AcDoubleArrayTrie) findSameCode(parentIndex int, code rune) int {
 	base := ac.base[parentIndex] // base >= 0
 	childIndex := base + int(code)
 
@@ -317,10 +317,10 @@ func (ac *AcDoubleArrayTrie) BuildFailPointer(root *Node) {
 		for _, child := range parent.children {
 			// parent.index's fail pointer point to failIndex
 			parentFailIndex := ac.fail[parent.index]
-			failPointer := ac.backtraceFailNode(parentFailIndex, child.code)
+			failPointer := ac.findSameCode(parentFailIndex, child.code)
 			for failPointer == failState {
 				parentFailIndex = ac.fail[parentFailIndex]
-				failPointer = ac.backtraceFailNode(parentFailIndex, child.code)
+				failPointer = ac.findSameCode(parentFailIndex, child.code)
 			}
 
 			ac.fail[child.index] = failPointer
@@ -341,17 +341,17 @@ type Hit struct {
 
 func (ac *AcDoubleArrayTrie) Search(content []rune) []*Hit {
 	hits := []*Hit{}
-	parentIndex := rootIndex
+	currentIndex := rootIndex
 	for index, code := range content {
-		failPointer := ac.backtraceFailNode(parentIndex, code)
-		for failPointer == failState {
-			parentIndex = ac.fail[parentIndex]
-			failPointer = ac.backtraceFailNode(parentIndex, code)
+		nextIndex := ac.findSameCode(currentIndex, code)
+		for nextIndex == failState {
+			currentIndex = ac.fail[currentIndex]
+			nextIndex = ac.findSameCode(currentIndex, code)
 		}
 
-		parentIndex = failPointer
+		currentIndex = nextIndex
 
-		for length := range ac.lengths[failPointer] {
+		for length := range ac.lengths[currentIndex] {
 			if length == 0 {
 				continue
 			}
