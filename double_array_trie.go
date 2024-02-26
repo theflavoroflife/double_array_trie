@@ -1,7 +1,6 @@
 package double_array_trie
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 )
@@ -146,11 +145,6 @@ func (ac *AcDoubleArrayTrie) BuildTrie(keyWords []string) *Node {
 
 		return false
 	})
-
-	for _, word := range words {
-		fmt.Printf("%s ", string(word))
-	}
-	fmt.Printf("\n")
 
 	ac.resize(int(maxCode))
 
