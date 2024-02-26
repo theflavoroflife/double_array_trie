@@ -24,7 +24,7 @@
 
 - 构建base和check的一个小技巧：对给定的多个字符串**从小到大的排序**，好处是可以通过下标找到孩子节点，不需要使用[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中的tail数组做辅助。
 
-- 本次演示增加一个lengths数组记录结束字符的时候字符串的长度，这个的好处是可以抛弃[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中使用负数表示字符串结束的方法。
+- 本次演示增加一个lengths数组记录结束字符的时候字符串的长度，这样做的好处是可以抛弃[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中使用负数表示字符串结束的方法。
 
 ##### 一、构建base和check的规则
 
@@ -32,7 +32,7 @@
 
 ![avatar](./images/sorted_words.jpg)
 
-​       构建base和check数组的遍历规则是按层次遍历(BFS)排序后的多个字符串。
+- 构建base和check数组的时候遍历这些字符串的规则是：层次遍历(BFS)。
 
 - 理解下面2个公式的含义很重要，构造base和check数组的时候会不断的使用到这2个规则。
 
@@ -43,7 +43,7 @@
   c：      对应孩子节点的ascii码
   t：      计算出来孩子节点应该放入的位置(index)，通过base[t]或者check[t]检查是否可以放入这个位置。
   如果check[t]的结果为0，表示寻找到的孩子节点的位置(index)未被占用，此孩子节点c可以暂时放在t这个位置。
-  如果check[t]的结果不为0，表示根据c找的位置被其他节点占用，需要增加父节点base[s]的值重新寻找一个t为的值。
+  如果check[t]的结果不为0，表示根据c找的位置被其他节点占用，需要增加父节点base[s]的值重新寻找一个t为空的值。
   (程序实现的时候，是查看base/check/lengths数组中只要其中一个有值，就表示该位置已经被占用)
 ```
 
@@ -89,12 +89,10 @@ lengths: 如果这个位置是结束字符，用来记录结束字符的长度�
   
 - 根据构造转移的公式：check[t] = s，做如下操作：
   
-  - 孩子节点的check数组要指向父亲节点的下标，节点h、i、s的父亲节点都是root节点，下标是0，最后结果：
+  - 孩子节点的check数组要指向父亲节点的下标，节点h、i、s的父亲节点都是root节点，root节点的下标是0，建立了孩子节点h、i、s和父亲节点root的对应关系：
     - **```check[105] = 0```**
     - **```check[106] = 0```**
     - **```check[116] = 0```**
-
-​	建立了孩子节点h、i、s和父亲节点root的对应关系。
 
 - 同时这个root节点下的第二个孩子节点i是结束字符，字符i位于index[106]，需要记录**lengths[106]=1**。
 
@@ -206,7 +204,7 @@ lengths: 如果这个位置是结束字符，用来记录结束字符的长度�
 
 ##### 一、构建fail数组规则：
 
-- 按层次遍历(BFS)已经排序过的多个关键字。
+- 按层次遍历(BFS)已经排序好的多个关键字。
 - root节点和root的孩子节点(depth=1)的fail指针都指向root，也就是字符code的fail数组都填写root的index。
 - 假如当前处理节点code，先找到其父节点parent，再找父节点parent的fail指针指向的节点parentFailIndex，查看节点parentFailIndex是否有与节点code相等的节点(假如child)
   - 如果找到，节点code的fail指针指向节点child，也就是节点code的fail数组填写child节点的index。
@@ -223,9 +221,9 @@ lengths: 如果这个位置是结束字符，用来记录结束字符的长度�
 ![avatar](./images/fail_first_word.jpg)
 
 - root节点的fail指针指向root节点，即
-- **fail[0]=0**。
+  - **fail[0]=0**
 - 第一层节点的fail指针指向root节点，即
-  - **fail[105]=0**，**fail[106]=0**，**fail[116]=0**。
+  - **fail[105]=0**，**fail[106]=0**，**fail[116]=0**
 
 ![avatar](./images/fail_first_depth.jpg)
 
@@ -246,7 +244,7 @@ lengths: 如果这个位置是结束字符，用来记录结束字符的长度�
   
     - ```check[106] = 0```
   - 根据上面的公式可以知道，节点index[0]下找到与字符i相等的孩子节点index[**107**]，将节点index[107]的fail指针指向节点index[106]，即
-  - **fail[107]=106**
+    - **fail[107]=106**
   - 查看lengths[106]=1，说明index[106]是一个结束字符，需要将lengths[106]拷贝到lengths[107]中，即
     - **lengths[107]=1**。
 - **节点h，index是108，ascii码是104**
