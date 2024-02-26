@@ -24,7 +24,7 @@
 
 - 构建base和check的一个小技巧：对给定的多个字符串**从小到大的排序**，好处是可以通过下标找到孩子节点，不需要使用[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中的tail数组做辅助。
 
-- 本次演示增加一个lengths数组记录结束字符的时候字符串的长度，这样做的好处是可以抛弃[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中使用负数表示字符串结束的方法。
+- 本次演示增加一个lengths数组记录结束字符的时候字符串的长度，这样做的好处是可以抛弃[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中使用负数表示字符串结束的方法，同时也能记录当前位置多个结束字符串的长度。
 
 ##### 一、构建base和check的规则
 
