@@ -12,60 +12,62 @@
 - fail数组的建立流程。
 - 给出一个示例，演示一遍双数组字典树的查询流程。
 
-双数组字典树是多模式匹配的一种实现方式，利用base和check数组做状态转移，查找速度比基于哈希映射的trie效率理论上更高。
+双数组字典树是多模式匹配的一种实现方式，利用base和check数组做状态转移，理论上的查找速度比基于哈希映射的trie的查找速度更高。
 
 
 
 ## 双数组字典树(double array trie)构建base和check数组
 
+问题：给定多个字符串：i，he，his，she，hers，构建这些字符串的双数组字典树的base和check数组。
+
 ##### 一、构建流程前言
 
-- 构建base和check的一个小技巧：对给定的多个字符串**从小到大的排序**，好处是可以通过下标找到孩子节点，不需要使用论文中的tail数组做辅助。
+- 构建base和check的一个小技巧：对给定的多个字符串**从小到大的排序**，好处是可以通过下标找到孩子节点，不需要使用[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中的tail数组做辅助。
 
-- 本次演示增加一个lengths数组记录结束字符的时候字符串的长度，不使用论文中用负数表示字符串是否结束。
+- 本次演示增加一个lengths数组记录结束字符的时候字符串的长度，这个的好处是可以抛弃[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中使用负数表示字符串结束的方法。
 
-##### 一、构建base和check的规则：
+##### 一、构建base和check的规则
 
-理解下面2个公式的含义很重要，构造base和check数组的时候不断的会使用到这2个规则。
+- 构建前的操作是，将给定的多个字符串[i，he，his，she，hers]进行从小到大排序，排序后：
 
-- ```
+![avatar](./images/sorted_words.jpg)
+
+​       构建base和check数组的遍历规则是按层次遍历(BFS)排序后的多个字符串。
+
+- 理解下面2个公式的含义很重要，构造base和check数组的时候会不断的使用到这2个规则。
+
+```
   base[s] + c = t
-  s：理解为父节点的坐标位置(index)
+  s：      理解为父亲节点的坐标位置(index)
   base[s]：表示位置s对应父节点存储的base值，base[s]不为空说明这个节点有孩子节点。
-  c：对应孩子节点的ascii码
-  t：计算出来孩子节点应该放入的位置(index)，通过base[t]或者check[t]检查是否可以放入这个位置。
+  c：      对应孩子节点的ascii码
+  t：      计算出来孩子节点应该放入的位置(index)，通过base[t]或者check[t]检查是否可以放入这个位置。
   如果check[t]的结果为0，表示寻找到的孩子节点的位置(index)未被占用，此孩子节点c可以暂时放在t这个位置。
   如果check[t]的结果不为0，表示根据c找的位置被其他节点占用，需要增加父节点base[s]的值重新寻找一个t为的值。
-  ```
-  
-- ``` 
+  (程序实现的时候，是查看base/check/lengths数组中只要其中一个有值，就表示该位置已经被占用)
+```
+
+``` 
   check[t] = s
-  t：孩子节点的index
-  s：父节点的index
+  t： 孩子节点的index
+  s： 父节点的index
   建立孩子节点和父节点对应关系，同时check[t]!=0也表示该位置t已经被占用。
-  (本篇文章实际程序实现的时候，是共用验证base/check/lengths来查看该位置是否被占用)
+  (程序实现的时候，是查看base/check/lengths数组中只要其中一个有值，就表示该位置已经被占用)
+```
 
 ##### 三、构建流程
 
-问题：给定多个字符串：i，he，his，she，hers，构建这些字符串的双数组字典树的base和check数组。
-
-注意：这是演示index是从0开始的，论文的使用check[index]查看这个位置是否被占用；实际写代码的时候，确定check数组的值后，base的值可以先用父亲节点的base值占位，这样可以用base/check/lengths来检测该位置是否被占用。
-
-为了演示的构造base和check清晰易懂，我们用5个数组来辅助处理
+除了构造base和check数组外，还需要一起填写的数组如下(fail数组暂时不需要)：
 
 ```
 index:   数组下标
-base:    可以理解父亲节点的base值；base不为空，说明该节点有孩子节点
-check:   主要建立孩子节点和父亲节点的对应关系，check存储的值就是父节点的位置；同时也可以用来表示位置是否被占用
+base:    可以理解为存储父亲节点的base值；base不为空，说明该节点有孩子节点
+check:   主要建立孩子节点和父亲节点的对应关系，check存储的值就是父亲节点的位置；同时也可以用来表示位置是否被占用
 fail:    查询失败后的跳转
-lengths: 如果这个位置是结束字符，记录结束字符的长度，可以记录多个结束字符长度
+lengths: 如果这个位置是结束字符，用来记录结束字符的长度，可以记录多个结束字符长度
 ```
 
-
-
 ###### 1、初始设置root节点位于index[0]处，并且初始化base[0]=1
-
-![avatar](./images/sorted_words.jpg)
 
 ![avatar](./images/bc_root.jpg)
 
@@ -74,25 +76,27 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
 ![](./images/bc_first_code.jpg)
 
 - 根据构造转移公式：base[s] + c = t，做如下操作：
-  - 节点h，ascii码是104，父亲节点是root：
+  - 节点h，ascii码是104，父亲节点是root，父亲节点位于index[0]：
     - ```base[s]+c = base[0]+'h' = base[0]+104 = t(1) ```
-  - 节点i，ascii码是105，父亲节点是root：
+  - 节点i，ascii码是105，父亲节点是root，父亲节点位于index[0]：
     - ```base[s]+c = base[0]+'i' = base[0]+105 = t(2)```
-  - 节点s，ascii码是115，父亲节点是root：
+  - 节点s，ascii码是115，父亲节点是root，父亲节点位于index[0]：
     - ```base[s]+c = base[0]+'s' = base[0]+115 = t(3)```
   
-  初始化base[0]=1，则t(1)=105，t(2)=106，t(3)=116；同时查看表格中check[105]、check[106]、check[116]的位置都为空，说明当base[0]=1的时候，root节点下的孩子节点h、i、j找到位置105、106、116可以存放。所以**base[0]等于1**。
+  初始化base[0]=1，则t(1)=105，t(2)=106，t(3)=116；
 
+  同时查看表格中check[105]、check[106]、check[116]的位置都为空，说明当base[0]=1的时候，root节点下的孩子节点h、i、s找到位置index[105]、index[106]、index[116]可以分别存放。所以**base[0]等于1**成立。
+  
 - 根据构造转移的公式：check[t] = s，做如下操作：
   
-  - 孩子节点的check数组要指向父亲节点的下标，节点h、i、s的父亲节点都是root节点，下标是0，结果：
-    - ```check[105] = 0```
-    - ```check[106] = 0```
-    - ```check[116] = 0```
+  - 孩子节点的check数组要指向父亲节点的下标，节点h、i、s的父亲节点都是root节点，下标是0，最后结果：
+    - **```check[105] = 0```**
+    - **```check[106] = 0```**
+    - **```check[116] = 0```**
 
 ​	建立了孩子节点h、i、s和父亲节点root的对应关系。
 
-- 同时这个root节点下的i是结束字符，需要记录**lengths[106]=1**。
+- 同时这个root节点下的第二个孩子节点i是结束字符，字符i位于index[106]，需要记录**lengths[106]=1**。
 
 ![](./images/bc_first_depth.jpg)
 
@@ -103,19 +107,19 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
 - 根据构造转移的公式：base[s] + c = t，做如下操作：
   
   - 节点e、i的父亲节点是h。
-    - 节点e，ascii码是101，父亲节点是h：
+    - 节点e，ascii码是101，父亲节点是h，父亲节点位置是index[105]：
       - ```base[s]+c = base[105]+'h' = t(1)```
   
-    - 节点i，ascii码是105，父亲节点是h：
+    - 节点i，ascii码是105，父亲节点是h，父亲节点位置是index[105]：
       - ```base[s]+c = base[105]+'i' = t(2)```
   
-    假如base[105]=1，则t(1)=102，t(2)=106。check[102]位置为空，但是check[106]位置不为空，该位置不能使用，已经被第一层节点i占用，base[105]=1不成立。
+    假如base[105]=1，则t(1)=102，t(2)=106。check[102]位置为空，但是check[106]位置不为空，该位置不能使用，已经被第一层节点i占用，所以base[105]=1不成立。
   
     假如base[105]=2，则t(1)=103，t(2)=107。查看表格check[103]和check[107]位置都为空，所以父节点base[105]=2的时候，孩子节点都可以找到空位置，结果**base[105]=2**。
   
   - 节点h的父亲节点是s。
-    - 节点h，ascii码是104，父亲节点是s：
-      - ```base[s]+c = base[116]+'h' = base[116]+104 = t(3)```
+    - 节点h，ascii码是104，父亲节点是s，父亲节点位置是index[116]：
+      - ```base[s]+c = base[116]+'h' = base[116]+104 = t```
   
     假如base[116]=1，t=105，check[105]已经被占用；
     
@@ -132,7 +136,7 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
   - 孩子节点h，建立和父亲节点(s)的对应关系，即：
     - ```check[108]=116```
 
-- 同时节点e是结束字符，需要记录lengths[103]=2。
+- 同时节点e是结束字符，字符e位于index[103]，需要记录**lengths[103]=2**。
 
 ![avatar](./images/bc_second_depth.jpg)
 
@@ -167,6 +171,10 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
   - base[108]=1，父亲节点h找到孩子节点e可以放入的空闲位置是index[102]，建立孩子节点e和父亲节点h的对应关系，即
     - **```check[102]=108```**
 
+- 同时节点s是结束字符，字符s位于index[117]，需要记录**lengths[117]=3**。
+
+  节点e是结束字符，节点e位于index[102]，需要记录**lengths[102]=3**
+
 ![avatar](./images/bc_third_depth.jpg)
 
 ###### 5、第4层节点：s，对应的ascii码值是s:115，其中r下有孩子节点s
@@ -174,18 +182,21 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
 ![avatar](./images/bc_forth_code.jpg)
 
 - 根据构造的公式：base[s] + c = t，做如下操作：
-  - 孩子节点s：base[s]+c = base[115]+'s'=base[115]+115=t
-
-  如果base[115]=1，则t=116，check[116]目前位置不为空，所以孩子节点s不可以放在index[116]位置。
-
-  如果base[115]=2，则t=117，check[117]目前位置不为空，所以孩子节点s不可以放在index[117]位置。
-
-  如果base[115]=3，则t=118，check[118]目前位置不为空，所以孩子节点s可以放在index[118]位置，最终**base[115]=3**
-
+  - 孩子节点s，ascii码是115，父亲节点是r，父亲节点位置是index[115]：
+    - base[s]+c = base[115]+'s' = base[115]+115 = t
+  
+    如果base[115]=1，则t=116，check[116]目前位置不为空，所以孩子节点s不可以放在index[116]位置。
+  
+    如果base[115]=2，则t=117，check[117]目前位置不为空，所以孩子节点s不可以放在index[117]位置。
+  
+    如果base[115]=3，则t=118，check[118]目前位置为空，所以孩子节点s可以放在index[118]位置，最终**base[115]=3**
+  
 - 根据构造的公式：check[t] = s，做如下操作：
   
-  - base[115]=3，父亲节点r找到孩子节点s的空闲位置是index[118]，建立孩子节点s和父亲节点r的对应关系，即
-    - **```check[118]=103```**
+  - 当base[115]=3，父亲节点r，位置是index[115]，找到孩子节点s的空闲位置是index[118]，建立孩子节点s和父亲节点r的对应关系，即
+    - **```check[118]=115```**
+
+- 同时节点s是结束字符，字符s位于index[118]，需要记录**lengths[118]=4**。
 
 ![avatar](./images/bc_forth_depth.jpg)
 
@@ -195,11 +206,14 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
 
 ##### 一、构建fail数组规则：
 
-- 按层次遍历(DFS)这些已经排序好的字符串。
-
-- root节点和root的孩子节点(depth=1)的fail指针都指向root，也就是fail数组都填写root的index。
-- 当前假如处理节点code，先找到父节点parent，再找父节点parent的fail指针指向的节点parentFailIndex，查看节点parentFailIndex是否有与节点code相等的节点(假如d)，如果找到，a的fail数组填写d节点的index，否则，以节点c为起点递归查找，重复步骤2操作。
-  递归的出口：如果节点c的孩子节点中(包含节点d的多个节点)没有等于节点a的元素，并且节点c是root节点，则查找结束，a的fail指针指向root，也就是a的fail数组填写root的index值。
+- 按层次遍历(BFS)已经排序过的多个关键字。
+- root节点和root的孩子节点(depth=1)的fail指针都指向root，也就是字符code的fail数组都填写root的index。
+- 假如当前处理节点code，先找到其父节点parent，再找父节点parent的fail指针指向的节点parentFailIndex，查看节点parentFailIndex是否有与节点code相等的节点(假如child)
+  - 如果找到，节点code的fail指针指向节点child，也就是节点code的fail数组填写child节点的index。
+  - 如果没有找到与节点code相等的孩子节点或者parentFailIndex没有孩子节点，查看节点parentFailIndex是不是root节点
+    - 如果节点parentFailIndex是root节点，则字符code的fail指针指向root。
+    - 如果节点parentFailIndex不是root节点，找出节点parentFailIndex的fail指针所指向的字符，继续最开始的操作。
+  
 - 构造fail数组的时候，如果节点a的fail指针指向节点b，并且节点b的lengths对应的长度有值m，需要把长度m添加到节点a的lengths中。
 
 ##### 二、fail数组的构建流程
@@ -208,9 +222,10 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
 
 ![avatar](./images/fail_first_word.jpg)
 
-- root节点的fail指针指向root节点，即**fail[0]=0**。
-
-- 第一层节点的fail指针指向root节点，即**fail[105]=0**，**fail[106]=0**，**fail[116]=0**。
+- root节点的fail指针指向root节点，即
+- **fail[0]=0**。
+- 第一层节点的fail指针指向root节点，即
+  - **fail[105]=0**，**fail[106]=0**，**fail[116]=0**。
 
 ![avatar](./images/fail_first_depth.jpg)
 
@@ -222,26 +237,24 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
   - 节点e的位置是index[**103**]，根据check[103]=105可知，节点index[103]的父亲节点是index[105]，index[105]的fail[105]=0，即父亲节点index[105]指向root节点index[0]，查表可知base[0]不为空，说明index[0]下有孩子节点，转换公式：
     - ```base[s]+'e' = base[0]+101 = 1+101 = 102```
     - ```check[102] = 108```
-
-  - 根据上面的公式可以知道，check[102] != 0，说明index[0]下没有与字符e相等的孩子节点，同时当前位置是root节点，字符e的fail指针指向root节点index[0]，即**fail[103]=0**。
-
+  - 根据上面的公式可以知道，check[102] != 0，说明index[0]下没有与字符e相等的孩子节点，同时当前位置是root节点，字符e的fail指针指向root节点index[0]，即
+    - **fail[103]=0**。
 - **节点i，index是107，ascii码是105**
   - 节点i的位置是index[**107**]，根据check[107]=105可知，节点index[107]的父亲节点是index[105]，index[105]的fail[105]=0，即父亲节点index[105]指向root节点index[0]，查表可知base[0]不为空，说明index[0]下有孩子节点，转换公式：
   
     - ```base[s]+'i' = base[0]+105 = 1+105 = 106```
   
     - ```check[106] = 0```
-  
-  - 根据上面的公式可以知道，节点index[0]下找到与字符i相等的孩子节点index[**107**]，将节点index[107]的fail指针指向节点index[106]，即**fail[107]=106**
-  
-  - 查看lengths[106]=1，说明index[106]是一个结束字符，需要将lengths[106]拷贝到lengths[107]中，即**lengths[107]=1**。
-  
+  - 根据上面的公式可以知道，节点index[0]下找到与字符i相等的孩子节点index[**107**]，将节点index[107]的fail指针指向节点index[106]，即
+  - **fail[107]=106**
+  - 查看lengths[106]=1，说明index[106]是一个结束字符，需要将lengths[106]拷贝到lengths[107]中，即
+    - **lengths[107]=1**。
 - **节点h，index是108，ascii码是104**
   - 节点h的位置是index[**108**]，根据check[108]=116可知，index[108]的父亲节点是index[116]，index[116]的fail[116]=0，即index[116]指向root节点index[0]，查表可知base[0]不为空，说明节点index[0]有孩子节点，转换公式：
     - ```base[s]+c = base[0]+'h' = 1+104 = 105```
     - ```check[105] = 0```
-
-  - 根据上面的公式可以知道，节点index[0]下找到与字符h相等的孩子节点index[**105**]，将节点index[108]的fail指针指向index[105]，即**fail[108]=105**。
+  - 根据上面的公式可以知道，节点index[0]下找到与字符h相等的孩子节点index[**105**]，将节点index[108]的fail指针指向index[105]，即
+    - **fail[108]=105**。
 
 ![avatar](./images/fail_second_depth.jpg)
 
@@ -253,19 +266,22 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
   - 节点r的位置是index[**115**]，根据check[115]=103可知，index[115]的父亲节点是index[103]，节点index[103]的fail[103]=0，也就是fail指针指向root节点index[0]，查表可知base[0]不为空，说明index[0]下有孩子节点，转换公式：
     - ```base[s]+c = base[0]+'r' = 1+114 = 115```
     - ```check[115] = 103```
-
-  - 根据上面的公式可以知道，check[115] != 0，说明index[0]下没有与字符r相等的孩子节点，同时当前位置是root节点，字符e的fail指针指向root节点index[0]，即**fail[115]=0**
+  - 根据上面的公式可以知道，check[115] != 0，说明index[0]下没有与字符r相等的孩子节点，同时当前位置是root节点，字符e的fail指针指向root节点index[0]，即
+    - **fail[115]=0**
 - **节点s，index是117，ascii码是115**
-  - 节点s的位置是index[**117**]，根据check[117]=107可知，index[117]的父亲节点是index[107]，节点index[107]的fail[107]=106，查表base[106]为空，说明index[0]下没有孩子节点；继续查找fail[106]=0，指向root节点index[0]，base[0]不为空，说明有孩子节点，转移公式：
+  - 节点s的位置是index[**117**]，根据check[117]=107可知，index[117]的父亲节点是index[107]，节点index[107]的fail[107]=106，查表base[106]为空，说明index[106]下没有孩子节点；继续查找fail[106]=0，指向root节点index[0]，base[0]不为空，说明有孩子节点，转移公式：
       - ```base[s]+'s' = base[0]+115 = 1+115 = 116```
       - ```check[116] = 0```
-  - 根据上面的公式可以知道，节点index[0]下找到与字符s相等的孩子节点index[**116**]，将index[117]的fail指针指向index[116]，即**fail[117]=116**
+  - 根据上面的公式可以知道，节点index[0]下找到与字符s相等的孩子节点index[**116**]，将index[117]的fail指针指向index[116]，即
+      - **fail[117]=116**
 - **节点e，index是102，ascii码是101**
   - 节点e的位置是index[**102**]，根据check[102]=108可知，index[102]的父亲节点是index[108]，节点index[108]的fail[108]=105，base[105]不为空，说明index[105]下有孩子节点，
     - ```base[s]+c = base[105]+'e' = 2+101 = 103```
     - ```check[103] = 105```
-  - 根据上面的公式可以知道，index[105]下找到与字符e相等的孩子节点index[**103**]，将index[102]的fail指针指向index[103]，即**fail[102]=103**
-  - 同时将lengths[103]的长度2添加到lengths[102]对应的lengths数组中，添加后**lengths[102]=3,2**
+  - 根据上面的公式可以知道，index[105]下找到与字符e相等的孩子节点index[**103**]，将index[102]的fail指针指向index[103]，即
+    - **fail[102]=103**
+  - 同时将lengths[103]的长度2添加到lengths[102]对应的lengths数组中，添加后lengths是
+    - **lengths[102]=3,2**
 
 ![avatar](./images/fail_third_depth.jpg)
 
@@ -277,8 +293,8 @@ lengths: 如果这个位置是结束字符，记录结束字符的长度，可�
   - 节点s的位置是index[**118**]，根据check[118]=115可知，节点index[118]的父亲节点是index[115]，节点index[115]的fail[115]=0，即index[115]节点的fail指针指向root节点index[0]，查表base[0]不为空，说明base[0]下有孩子节点，转移公式：
     - ```base[s]+c = base[0]+'s' = 1+115 = 116```
     - ```check[116] = 0```
-
-  - 根据上面的公式可以知道，index[0]下找到与字符e相等的孩子节点index[**116**]，将index[118]的fail指针指向index[116]，即**fail[118]=116**
+  - 根据上面的公式可以知道，index[0]下找到与字符e相等的孩子节点index[**116**]，将index[118]的fail指针指向index[116]，即
+    - **fail[118]=116**
 
 ![avatar](./images/fail_forth_depth.jpg)
 
