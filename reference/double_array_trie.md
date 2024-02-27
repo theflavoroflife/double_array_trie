@@ -22,7 +22,7 @@
 
 ##### 一、构建流程前言
 
-- 构建base和check的一个小技巧：对给定的多个字符串**从小到大的排序**，好处是可以通过下标找到孩子节点，不需要使用[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中的tail数组做辅助。
+- 构建base和check的一个小技巧：对给定的多个字符串进行**字典序的升序排序**，好处是可以通过下标找到孩子节点，不需要使用[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中的tail数组做辅助。
 
 - 本次演示增加一个lengths数组记录结束字符的时候字符串的长度，这样做的好处是可以抛弃[论文](https://kampersanda.github.io/pdf/KAIS2017.pdf)中使用负数表示字符串结束的方法，同时也能记录当前位置多个结束字符串的长度。
 
@@ -300,7 +300,7 @@ lengths: 如果这个位置是结束字符，用来记录结束字符的长度�
 
 ## 双数组字典树(double array trie)查找
 
-##### 一、查找规则：
+##### 一、查找规则
 
 假如当前被查找字符是code(ascii码)，当前节点是current，当前的孩子节点是child。定义变量currentIndex记录当前查找位置。
 
@@ -310,7 +310,7 @@ lengths: 如果这个位置是结束字符，用来记录结束字符的长度�
     - 当前节点(current)是root节点，则返回root下标index给currentIndex，本次查找结束。
     - 当前节点(current)不是root节点，查表取出fail[currentIndex]的下标index给currentIndex，即currentIndex=fail[currentIndex]。也就是本次匹配失败后，转移currentIndex到fail数组指向的节点，将fail[currentIndex]位置设置为当前需要开始查找的位置，继续第一步查找流程。
 
-再来看看下面2个公式，下面会不停的用到这2个公式的转换：
+再来看看下面2个公式，后面会不停的用到这2个公式的转换：
 
 - ```base[s] + c = t```
 - ```check[t] = s```
@@ -653,7 +653,7 @@ lengths: 如果这个位置是结束字符，用来记录结束字符的长度�
 
 ###### 17、接下来的流程不再赘述。
 
-###### 最后的结果：
+###### 三、最后的结果
 
 ![avatar](./images/result.jpg)
 
