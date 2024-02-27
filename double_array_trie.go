@@ -18,7 +18,7 @@ type DoubleArrayTrie struct {
 
 type AcDoubleArrayTrie struct {
 	DoubleArrayTrie
-	fail    []int              // fail pointer
+	fail    []int              // fail array
 	lengths []map[int]struct{} // lengths of words
 }
 
@@ -224,25 +224,22 @@ func (ac *AcDoubleArrayTrie) getChildren(parent *Node, words [][]rune) []*Node {
 func (ac *AcDoubleArrayTrie) setBaseAndCheck(parent *Node) {
 	base := ac.getBase(parent)
 	ac.resize(parent.index)
-	ac.base[parent.index] = base // reset parent's base value
+	ac.base[parent.index] = base // base[s]+c = t, reset parent's base value
 
-	//fmt.Printf("setBaseAndCheck parent parent.code:%s, parent.index:%-3d, base:%d\n",
-	//	string(parent.code), parent.index, base)
 	index := 0
 	for _, child := range parent.children {
 		index = base + int(child.code)
 		child.index = index
 
 		ac.resize(index)
-		ac.base[index] = base // placeholder, may not be the corrent base value
-		ac.check[index] = parent.index
-		//fmt.Printf("setBaseAndCheck child- child.code: %s, parent.index:%-3d, base:%d, index:%d\n",
-		//	string(child.code), parent.index, base, index)
+		ac.base[index] = base          // placeholder, may not be the corrent base value
+		ac.check[index] = parent.index // check[t] = s
 	}
 }
 
 func (ac *AcDoubleArrayTrie) getBase(parent *Node) int {
 	if len(parent.children) == 0 {
+		// different from the paper, negative values are not set.
 		return 0 // base=0, has no children
 	}
 
@@ -254,14 +251,16 @@ func (ac *AcDoubleArrayTrie) getBase(parent *Node) int {
 		pos++
 
 		// index begin from 0, use base/check/lengths array to check whether the position is occupied
-		if len(ac.base) > pos && (ac.base[pos] != 0 || ac.check[pos] != 0 || len(ac.lengths[pos]) > 0) {
+		if len(ac.base) > pos &&
+			(ac.base[pos] != 0 || ac.check[pos] != 0 || len(ac.lengths[pos]) > 0) {
 			continue
 		}
 
 		base = pos - firstChildCode
 		for _, child := range parent.children {
 			index := base + int(child.code)
-			if len(ac.base) > index && (ac.base[index] != 0 || ac.check[index] != 0 || len(ac.lengths[index]) > 0) {
+			if len(ac.base) > index &&
+				(ac.base[index] != 0 || ac.check[index] != 0 || len(ac.lengths[index]) > 0) {
 				goto next
 			}
 		}
